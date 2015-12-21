@@ -79,5 +79,5 @@ func (r rateLimiter) Validate(key string) error {
 }
 
 func (r rateLimiter) transformKey(key string, duration int) string {
-	return key + "_" + strconv.Itoa(duration)
+	return "ratelimiter_" + key + "_" + strconv.Itoa(duration)
 }
