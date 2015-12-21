@@ -34,10 +34,12 @@ Run the following command:
     // Add a limit of 10 request for a duration of 5 minutes
     r.AddBucket(5 * 60, 10)
     
-    // Validate key rate limiter
+    // Get key to validate
     key := "key_test"
+    
+    // Validate twice won't return an error as 2 requests are permitted for a timespan of 5 seconds
     e := r.Validate(key)
     e = r.Validate(key)
-    e = r.Validate(key)
     
-The last `validate` call will output an errLimitReached
+    // But this time this call will return an errLimitReached
+    e = r.Validate(key)
