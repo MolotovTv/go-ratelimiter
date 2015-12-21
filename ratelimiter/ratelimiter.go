@@ -12,6 +12,7 @@ var (
 // RateLimiter represents a rate limiter
 type RateLimiter interface {
 	AddBucket(duration int, limit int) RateLimiter
+	SetBuckets(buckets map[int]int) RateLimiter
 	DelBucket(duration int) RateLimiter
 	Validate(key string) error
 }
@@ -39,6 +40,11 @@ func NewRateLimiter(cache Cache, errCacheMiss error) RateLimiter {
 
 func (r *rateLimiter) AddBucket(duration int, limit int) RateLimiter {
 	r.buckets[duration] = limit
+	return r
+}
+
+func (r *rateLimiter) SetBuckets(buckets map[int]int) RateLimiter {
+	r.buckets = buckets
 	return r
 }
 
