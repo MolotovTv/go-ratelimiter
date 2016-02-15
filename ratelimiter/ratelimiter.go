@@ -6,7 +6,7 @@ import (
 )
 
 var (
-	errLimitReached = errors.New("Limit reached")
+	ErrLimitReached = errors.New("Limit reached")
 )
 
 // RateLimiter represents a rate limiter
@@ -70,7 +70,7 @@ func (r rateLimiter) Validate(key string) error {
 				return e
 			}
 		} else if v == 0 {
-			return errLimitReached
+			return ErrLimitReached
 		}
 	}
 
