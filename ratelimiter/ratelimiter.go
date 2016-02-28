@@ -3,6 +3,8 @@ package ratelimiter
 import (
 	"errors"
 	"strconv"
+	"github.com/asticode/go-cache-manager/cachemanager"
+	"time"
 )
 
 var (
@@ -11,44 +13,36 @@ var (
 
 // RateLimiter represents a rate limiter
 type RateLimiter interface {
-	AddBucket(duration int, limit int) RateLimiter
-	SetBuckets(buckets map[int]int) RateLimiter
-	DelBucket(duration int) RateLimiter
+	AddBucket(duration time.Duration, limit int) RateLimiter
+	SetBuckets(buckets map[time.Duration]int) RateLimiter
+	DelBucket(duration time.Duration) RateLimiter
 	Validate(key string) error
 }
 
-// Cache represents the cache holding values typically a Memcache
-type Cache interface {
-	Set(k string, v []byte, ttl int32) error
-	Decrement(key string, delta uint64) (uint64, error)
-}
-
 type rateLimiter struct {
-	buckets map[int]int
-	cache   Cache
-	errCacheMiss error
+	buckets map[time.Duration]int
+	handler cachemanager.Handler
 }
 
 // NewRateLimiter creates a new rate limiter
-func NewRateLimiter(cache Cache, errCacheMiss error) RateLimiter {
+func NewRateLimiter(h cachemanager.Handler) RateLimiter {
 	return &rateLimiter{
-		buckets: make(map[int]int),
-		cache:   cache,
-		errCacheMiss: errCacheMiss,
+		buckets: make(map[time.Duration]int),
+		handler: h,
 	}
 }
 
-func (r *rateLimiter) AddBucket(duration int, limit int) RateLimiter {
+func (r *rateLimiter) AddBucket(duration time.Duration, limit int) RateLimiter {
 	r.buckets[duration] = limit
 	return r
 }
 
-func (r *rateLimiter) SetBuckets(buckets map[int]int) RateLimiter {
+func (r *rateLimiter) SetBuckets(buckets map[time.Duration]int) RateLimiter {
 	r.buckets = buckets
 	return r
 }
 
-func (r *rateLimiter) DelBucket(duration int) RateLimiter {
+func (r *rateLimiter) DelBucket(duration time.Duration) RateLimiter {
 	delete(r.buckets, duration)
 	return r
 }
@@ -57,14 +51,14 @@ func (r rateLimiter) Validate(key string) error {
 	// Loop through buckets
 	for duration, limit := range r.buckets {
 		// Decrement
-		v, e := r.cache.Decrement(r.transformKey(key, duration), 1)
+		v, e := r.handler.Decrement(r.transformKey(key, duration), 1)
 
 		// Process error
 		if e != nil {
 			// Cache miss
-			if e.Error() == r.errCacheMiss.Error() {
+			if e.Error() == cachemanager.ErrCacheMiss.Error() {
 				// Create key
-				r.cache.Set(r.transformKey(key, duration), []byte(strconv.Itoa(limit)), int32(duration))
+				r.handler.Set(r.transformKey(key, duration), uint64(limit), duration)
 			} else {
 				// Return
 				return e
@@ -78,6 +72,6 @@ func (r rateLimiter) Validate(key string) error {
 	return nil
 }
 
-func (r rateLimiter) transformKey(key string, duration int) string {
-	return "ratelimiter_" + key + "_" + strconv.Itoa(duration)
+func (r rateLimiter) transformKey(key string, duration time.Duration) string {
+	return "ratelimiter_" + key + "_" + strconv.Itoa(int(duration))
 }
