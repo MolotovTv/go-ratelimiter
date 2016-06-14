@@ -3,8 +3,9 @@ package ratelimiter
 import (
 	"errors"
 	"strconv"
-	"github.com/asticode/go-cache-manager/cachemanager"
 	"time"
+
+	"github.com/asticode/go-cache-manager/cachemanager"
 )
 
 var (
@@ -73,5 +74,5 @@ func (r rateLimiter) Validate(key string) error {
 }
 
 func (r rateLimiter) transformKey(key string, duration time.Duration) string {
-	return "ratelimiter_" + key + "_" + strconv.Itoa(int(duration))
+	return "ratelimiter:" + key + ":" + strconv.Itoa(int(duration))
 }

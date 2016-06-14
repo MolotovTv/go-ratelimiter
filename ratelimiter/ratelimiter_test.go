@@ -4,8 +4,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/asticode/go-cache-manager/cachemanager"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestValidateCacheMiss(t *testing.T) {
@@ -14,7 +14,7 @@ func TestValidateCacheMiss(t *testing.T) {
 	h := cachemanager.MockHandler()
 
 	// Create rate limiter
-	r := NewRateLimiter(h).AddBucket(time.Duration(2) * time.Second, 2)
+	r := NewRateLimiter(h).AddBucket(time.Duration(2)*time.Second, 2)
 
 	// Validate
 	e := r.Validate(k)
@@ -29,7 +29,7 @@ func TestValidateLimitReached(t *testing.T) {
 	h := cachemanager.MockHandler()
 
 	// Create rate limiter
-	r := NewRateLimiter(h).AddBucket(time.Duration(2) * time.Second, 2)
+	r := NewRateLimiter(h).AddBucket(time.Duration(2)*time.Second, 2)
 
 	// Assert
 	e := r.Validate(k)
